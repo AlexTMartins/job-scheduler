@@ -11,31 +11,31 @@ import com.alex.jobScheduler.model.Job;
 @Service
 public class JobSchedulerService {
 
-	public List<List<Job>> scheduleJobs(List<Job> jobs) {
+	public List<List<Long>> scheduleJobs(List<Job> jobs) {
 			
 		sortJobsByMaxDate(jobs);
 		return groupJobsByLimitTime(jobs, getMaxHoursToExecute());		
 	}
 	
-	public List<List<Job>> groupJobsByLimitTime(List<Job> jobs, int limitTimeInHours){
+	public List<List<Long>> groupJobsByLimitTime(List<Job> jobs, int limitTimeInHours){
 	
-		List<List<Job>> groupedJobs = new ArrayList<List<Job>>();
+		List<List<Long>> groupedJobs = new ArrayList<List<Long>>();
 		analyzeJobsToGroup(groupedJobs,jobs, limitTimeInHours);
 		
 		return groupedJobs;
 	}
 	
-	public void analyzeJobsToGroup(List<List<Job>> groupedJobs, List<Job> jobs, int limitTimeInHours) {
+	public void analyzeJobsToGroup(List<List<Long>> groupedJobs, List<Job> jobs, int limitTimeInHours) {
 
 		List<Job> notGroupedJobs = new ArrayList<Job>();
-		List<Job> jobsToGroup = new ArrayList<Job>();
+		List<Long> jobsToGroup = new ArrayList<Long>();
 		
 		int timeGrouped = 0; 
 		
 		for (Job job : jobs) {
 			
 			if(isJobAbleToGroup(limitTimeInHours, timeGrouped, job)) {
-				jobsToGroup.add(job);
+				jobsToGroup.add(job.getId());
 				timeGrouped += job.getTempoEstimado();
 			}else {
 				notGroupedJobs.add(job);
@@ -44,7 +44,7 @@ public class JobSchedulerService {
 			if (isMaxTimeExceeded(limitTimeInHours, timeGrouped)) {
 				
 				groupedJobs.add(jobsToGroup);
-				jobsToGroup = new ArrayList<Job>();
+				jobsToGroup = new ArrayList<Long>();
 				timeGrouped=0;		
 			}
         }
@@ -62,7 +62,7 @@ public class JobSchedulerService {
 		}
 	}
 
-	private boolean hasJobsToGroup(List<Job> jobsToGroup) {
+	private boolean hasJobsToGroup(List<Long> jobsToGroup) {
 		return !jobsToGroup.isEmpty();
 	}
 	private boolean hasMoreJobsToAnalize(List<Job> jobsToGroup) {
@@ -73,7 +73,7 @@ public class JobSchedulerService {
 		jobs.sort(Comparator.comparing(Job::getDataMaximaDeConclusao));	
 	}
 	
-	private boolean isTheLastGroup(List<Job> notGroupedJobs, List<Job> jobsToGroup, int timeGrouped) {
+	private boolean isTheLastGroup(List<Job> notGroupedJobs, List<Long> jobsToGroup, int timeGrouped) {
 		return timeGrouped > 0 && notGroupedJobs.isEmpty() && hasJobsToGroup(jobsToGroup);
 	}
 	
