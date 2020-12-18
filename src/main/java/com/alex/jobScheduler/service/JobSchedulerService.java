@@ -28,18 +28,37 @@ public class JobSchedulerService {
 	
 	public void analyzeJobsToGroup(List<List<Job>> groupedJobs, List<Job> jobs, int limitTimeInHours) {
 
-		List notGroupedJobs = new ArrayList<String>();
-		List jobsToGroup = new ArrayList<String>();
+		List<Job> notGroupedJobs = new ArrayList<Job>();
+		List<Job> jobsToGroup = new ArrayList<Job>();
 		
 		int timeCounter = 0; 
 		
-		jobs.forEach((job) -> {
-			if(job.getTempoEstimado() + timeCounter <= limitTimeInHours) {
+		for (Job job : jobs) {
+			
+			if(isJobAbleToGroup(limitTimeInHours, timeCounter, job)) {
 				jobsToGroup.add(job);
+			}else {
+				notGroupedJobs.add(job);
 			}
 			
-        });
-		
+			timeCounter += job.getTempoEstimado();
+			
+			if (isMaxTimeExceeded(limitTimeInHours, timeCounter)) {
+				
+				groupedJobs.add(jobsToGroup);
+				jobsToGroup.clear();
+				timeCounter=0;
+						
+			}
+        }
+	}
+
+	private boolean isJobAbleToGroup(int limitTimeInHours, int timeCounter, Job job) {
+		return job.getTempoEstimado() + timeCounter <= limitTimeInHours;
+	}
+	
+	private boolean isMaxTimeExceeded(int limitTimeInHours, int timeCounter) {
+		return timeCounter>=limitTimeInHours;
 	}
 	
 	public void sortJobsByMaxDate(List<Job> jobs) {
