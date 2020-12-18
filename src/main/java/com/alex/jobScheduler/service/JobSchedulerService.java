@@ -20,7 +20,6 @@ public class JobSchedulerService {
 	public List<List<Job>> groupJobsByLimitTime(List<Job> jobs, int limitTimeInHours){
 	
 		List<List<Job>> groupedJobs = new ArrayList<List<Job>>();
-		
 		analyzeJobsToGroup(groupedJobs,jobs, limitTimeInHours);
 		
 		return groupedJobs;
@@ -31,28 +30,42 @@ public class JobSchedulerService {
 		List<Job> notGroupedJobs = new ArrayList<Job>();
 		List<Job> jobsToGroup = new ArrayList<Job>();
 		
-		int timeCounter = 0; 
+		int timeGrouped = 0; 
 		
 		for (Job job : jobs) {
 			
-			if(isJobAbleToGroup(limitTimeInHours, timeCounter, job)) {
+			if(isJobAbleToGroup(limitTimeInHours, timeGrouped, job)) {
 				jobsToGroup.add(job);
+				timeGrouped += job.getTempoEstimado();
 			}else {
 				notGroupedJobs.add(job);
 			}
 			
-			timeCounter += job.getTempoEstimado();
-			
-			if (isMaxTimeExceeded(limitTimeInHours, timeCounter)) {
+			if (isMaxTimeExceeded(limitTimeInHours, timeGrouped)) {
 				
 				groupedJobs.add(jobsToGroup);
-				jobsToGroup.clear();
-				timeCounter=0;
-						
+				jobsToGroup = new ArrayList<Job>();
+				timeGrouped=0;		
 			}
         }
+		
+		if(!notGroupedJobs.isEmpty()) {
+			analyzeJobsToGroup(groupedJobs, jobsToGroup, limitTimeInHours);
+		}
+		
+		if(isTheLastGroup(notGroupedJobs, jobsToGroup, timeGrouped)) {
+			groupedJobs.add(jobsToGroup);
+		}
 	}
-
+	
+	public void sortJobsByMaxDate(List<Job> jobs) {
+		jobs.sort(Comparator.comparing(Job::getDataMaximaDeConclusao));	
+	}
+	
+	private boolean isTheLastGroup(List<Job> notGroupedJobs, List<Job> jobsToGroup, int timeGrouped) {
+		return timeGrouped > 0 && notGroupedJobs.isEmpty() && !jobsToGroup.isEmpty();
+	}
+	
 	private boolean isJobAbleToGroup(int limitTimeInHours, int timeCounter, Job job) {
 		return job.getTempoEstimado() + timeCounter <= limitTimeInHours;
 	}
@@ -60,11 +73,7 @@ public class JobSchedulerService {
 	private boolean isMaxTimeExceeded(int limitTimeInHours, int timeCounter) {
 		return timeCounter>=limitTimeInHours;
 	}
-	
-	public void sortJobsByMaxDate(List<Job> jobs) {
-		jobs.sort(Comparator.comparing(Job::getDataMaximaDeConclusao));	
-	}
-	
+
 	private int getMaxHoursToExecute(){
 		return 8;
 	}

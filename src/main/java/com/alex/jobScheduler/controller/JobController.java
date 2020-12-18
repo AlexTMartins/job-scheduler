@@ -23,13 +23,8 @@ public class JobController {
 	@PostMapping("/job/schedule")
 	public ResponseEntity<List<List<Job>>> post(@RequestBody List<@Valid Job> jobs) {
 
-		jobSchedulerService.scheduleJobs(jobs);
+		List<List<Job>> scheduledJobs = jobSchedulerService.scheduleJobs(jobs);
 		
-		if (true) {
-			return new ResponseEntity<>(HttpStatus.OK);
-		} else {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
+		return new ResponseEntity<>(scheduledJobs, HttpStatus.OK);	
 	}
-
 }
