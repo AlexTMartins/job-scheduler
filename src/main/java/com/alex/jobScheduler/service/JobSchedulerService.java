@@ -49,13 +49,24 @@ public class JobSchedulerService {
 			}
         }
 		
-		if(!notGroupedJobs.isEmpty()) {
-			analyzeJobsToGroup(groupedJobs, jobsToGroup, limitTimeInHours);
+		if(hasMoreJobsToAnalize(notGroupedJobs)) {
+			
+			if(hasJobsToGroup(jobsToGroup)) {
+				groupedJobs.add(jobsToGroup);
+			}
+			analyzeJobsToGroup(groupedJobs, notGroupedJobs, limitTimeInHours);
 		}
 		
 		if(isTheLastGroup(notGroupedJobs, jobsToGroup, timeGrouped)) {
 			groupedJobs.add(jobsToGroup);
 		}
+	}
+
+	private boolean hasJobsToGroup(List<Job> jobsToGroup) {
+		return !jobsToGroup.isEmpty();
+	}
+	private boolean hasMoreJobsToAnalize(List<Job> jobsToGroup) {
+		return !jobsToGroup.isEmpty();
 	}
 	
 	public void sortJobsByMaxDate(List<Job> jobs) {
@@ -63,7 +74,7 @@ public class JobSchedulerService {
 	}
 	
 	private boolean isTheLastGroup(List<Job> notGroupedJobs, List<Job> jobsToGroup, int timeGrouped) {
-		return timeGrouped > 0 && notGroupedJobs.isEmpty() && !jobsToGroup.isEmpty();
+		return timeGrouped > 0 && notGroupedJobs.isEmpty() && hasJobsToGroup(jobsToGroup);
 	}
 	
 	private boolean isJobAbleToGroup(int limitTimeInHours, int timeCounter, Job job) {
